@@ -1,4 +1,4 @@
-# HTTP Credential Sniffer (for PHP Applications)
+# Man-in-the-App Proof-of-Concept Credential Sniffer (for now, PHP Applications only)
 
 This is a simple script that will detect and log any credential communication over cookies and get/post requests and exfiltrate to somewhere. This method monitors data into application context/environment so cannot be defeated by the use of SSL.
 
@@ -6,22 +6,22 @@ This is a simple script that will detect and log any credential communication ov
 
 Use the auto_prepend_file trick
 ```
-php_value auto_prepend_file /var/www/path/to/hcs.php
+php_value auto_prepend_file /var/www/path/to/mita.php
 ```
 
 Include into an important bootstrap file (like Wordpress' Themes function.php)
 ```php
-include_once "hcs.php"
+include_once "mita.php"
 ```
 
 ## Exfiltration Modes
-* HCS_EXF_FILE -> Saves on a text file defined on 'HCS_EXF_FILE_FILENAME' constant (be sure to check file permissions!)
-* HCS_EXF_HTTP_HEAD -> Issues an HTTP HEAD request via curl (requires php_curl) with X-HCS-Payload header containing the data (base64-encoded for compatibility, not evasion)
+* MITA_EXF_FILE -> Saves on a text file defined on 'MITA_EXF_FILE_FILENAME' constant (be sure to check file permissions!)
+* MITA_EXF_HTTP_HEAD -> Issues an HTTP HEAD request via curl (requires php_curl) with X-MITA-Payload header containing the data (base64-encoded for compatibility, not evasion)
 
 ### Exfiltrating to a file
 Sample output
 ```
-#### HCS LOG START ## 01/03/2014 23:54:10 ####
+#### MITA LOG START ## 01/03/2014 23:54:10 ####
 Array
 (
     [POST] => Array
@@ -48,14 +48,14 @@ Array
         )
 
 )
-### HCS LOG END ###
+### MITA LOG END ###
 
 ```
 
 ### HTTP Head
 
-HCS will issue an HTTP HEAD request to the url supplied in 'HCS_EXF_HTTP_HEAD_URL' constant.
-The header name is configured under the 'HCS_EXF_HTTP_HEAD_HEADER' constant.
+MitA will issue an HTTP HEAD request to the url supplied in 'MITA_EXF_HTTP_HEAD_URL' constant.
+The header name is configured under the 'MITA_EXF_HTTP_HEAD_HEADER' constant.
 You'll need to code your own data receiver or use the sample header_dumper.php.
 
 ## Mitigation

